@@ -2,40 +2,47 @@
 
 namespace App\Service;
 
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Exception;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class HealthCheckService
+readonly class HealthCheckService
 {
-    private HttpClientInterface $httpClient;
 
-    public function __construct(HttpClientInterface $httpClient)
+    public function __construct(private HttpClientInterface $httpClient)
     {
-        $this->httpClient = $httpClient;
     }
 
     public function checkEndpoints(array $endpoints): array
     {
         $results = [];
+        $responses = [];
 
+        // Initiate all requests concurrently
         foreach ($endpoints as $name => $url) {
             try {
-                $response = $this->httpClient->request('GET', $url);
-                $statusCode = $response->getStatusCode();
-
-                $results[$name] = [
-                    'status' => $statusCode === 200 ? 'OK' : 'FAIL',
-                    'response' => $response->getContent(),
-                ];
-            } catch (\Exception $e) {
+                $responses[$name] = $this->httpClient->request('GET', $url, [
+                    'timeout' => 10, // Timeout per request in seconds
+                ]);
+            } catch (TransportExceptionInterface $e) {
                 $results[$name] = [
                     'status' => 'ERROR',
                     'response' => $e->getMessage(),
                 ];
-            } catch (TransportExceptionInterface $e) {
+            }
+        }
+
+        // Process responses asynchronously
+        foreach ($responses as $name => $response) {
+            try {
+                $statusCode = $response->getStatusCode();
+                $content = $response->getContent(); // generic exception catches all errors
+
+                $results[$name] = [
+                    'status' => $statusCode === 200 ? 'OK' : 'FAIL',
+                    'response' => $content,
+                ];
+            } catch (Exception | TransportExceptionInterface $e) {
                 $results[$name] = [
                     'status' => 'ERROR',
                     'response' => $e->getMessage(),

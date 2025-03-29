@@ -2,27 +2,29 @@
 
 namespace App\Service;
 
-class ConfigService
+readonly class ConfigService
 {
-    private array $config = [];
-
-    public function __construct(array $config = [])
+    public function __construct(private array $config = [])
     {
-        $this->config = $config;
     }
 
     public function get(string $key, $default = null)
     {
-        return $this->config[$key] ?? $default;
-    }
+        $keys = explode('.', $key);
+        $value = $this->config;
 
-    public function getGroup(string $group): array
-    {
-        return $this->config[$group] ?? [];
+        foreach ($keys as $k) {
+            if (!is_array($value) || !array_key_exists($k, $value)) {
+                return $default;
+            }
+            $value = $value[$k];
+        }
+
+        return $value;
     }
 
     public function has(string $key): bool
     {
-        return isset($this->config[$key]);
+        return $this->get($key) !== null;
     }
 }
