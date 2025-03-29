@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Health Check</title>
+    <style>
+        table {
+            width: 80%;
+            margin: auto;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .ok {
+            color: green;
+        }
+
+        .fail, .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<h1 style="text-align: center;">System Health Check</h1>
+<table>
+    <thead>
+    <tr>
+        <th>System</th>
+        <th>Status</th>
+        <th>Response</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for name, result in results %}
+        <tr>
+            <td>{{ name }}</td>
+            <td class="{{ result.status | lower }}">{{ result.status }}</td>
+            <td>
+                <pre>{{ result.response }}</pre>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>
