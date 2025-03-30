@@ -1,54 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Health Check</title>
-    <style>
-        table {
-            width: 80%;
-            margin: auto;
-            border-collapse: collapse;
-        }
+{% extends 'base.twig' %}
 
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
+{% block content %}
+    <h1 class="text-2xl text-center mb-8">System Health Check</h1>
+    <button
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+            hx-get="/health-checks"
+            hx-trigger="click"
+            hx-target="#results"
+            hx-swap="outerHTML"
+    >
+        Refresh Health Checks
+    </button>
 
-        th {
-            background-color: #f2f2f2;
-        }
-
-        .ok {
-            color: green;
-        }
-
-        .fail, .error {
-            color: red;
-        }
-    </style>
-</head>
-<body>
-<h1 style="text-align: center;">System Health Check</h1>
-<table>
-    <thead>
-    <tr>
-        <th>System</th>
-        <th>Status</th>
-        <th>Response</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for name, result in results %}
-        <tr>
-            <td>{{ name }}</td>
-            <td class="{{ result.status | lower }}">{{ result.status }}</td>
-            <td>
-                <pre>{{ result.response }}</pre>
-            </td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
-</body>
-</html>
+    <div id="results">
+        {% include 'partials/results.twig' %}
+    </div>
+{% endblock %}
