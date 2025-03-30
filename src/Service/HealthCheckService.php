@@ -52,4 +52,26 @@ readonly class HealthCheckService
 
         return $results;
     }
+
+    public function checkEndpoint(string $url): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', $url, [
+                'timeout' => 10, // Timeout per request in seconds
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            $content = $response->getContent();
+
+            return [
+                'status' => $statusCode === 200 ? 'OK' : 'FAIL',
+                'response' => $content,
+            ];
+        } catch (Exception | TransportExceptionInterface $e) {
+            return [
+                'status' => 'ERROR',
+                'response' => $e->getMessage(),
+            ];
+        }
+    }
 }

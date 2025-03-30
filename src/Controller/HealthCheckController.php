@@ -5,7 +5,7 @@ namespace App\Controller;
 
 use App\Service\ConfigService;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Psr7\Response;
+use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Views\Twig;
 use App\Service\HealthCheckService;
 use Twig\Error\LoaderError;
@@ -27,15 +27,44 @@ readonly class HealthCheckController
         $results = $this->healthCheckService->checkEndpoints($this->configService->get('endpoints'));
 
         try {
-            return $this->view->render($response, 'health_check.twig', [
+            return $this->view->render($response, 'health/list.twig', [
                 'results' => $results
             ]);
-        } catch (LoaderError $e) {
+        } catch (LoaderError|RuntimeError|SyntaxError $e) {
+            return $this->view->render(
+                $response->withStatus(500)->withHeader('Content-Type', 'text/html'),
+                'error.twig',
+                ['error' => $e->getMessage()]
+            );
+        }
+    }
 
-        } catch (RuntimeError $e) {
+    public function show(Request $request, Response $response): Response
+    {
+        $args = $request->getAttributes();
+        $name = $args['name'];
+        $endpoints = $this->configService->get('endpoints');
+        if (!array_key_exists($name, $endpoints)) {
+            return $this->view->render(
+                $response->withStatus(500)->withHeader('Content-Type', 'text/html'),
+                'error.twig',
+                ['error' => "Endpoint '$name' not found"]
+            );
+        }
+        $url = $endpoints[$name];
+        $result = $this->healthCheckService->checkEndpoint($url);
 
-        } catch (SyntaxError $e) {
-
+        try {
+            return $this->view->render($response, 'health/show.twig', [
+                'name' => $name,
+                'result' => $result
+            ]);
+        } catch (LoaderError|SyntaxError|RuntimeError $e) {
+            return $this->view->render(
+                $response->withStatus(500)->withHeader('Content-Type', 'text/html'),
+                'error.twig',
+                ['error' => $e->getMessage()]
+            );
         }
     }
 }
