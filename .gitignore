@@ -1,11 +1,9 @@
 # Dependencies
 vendor/
-node_modules/
 
 # Dotfiles
 .env
 .idea/
-.phpunit.result.cache
 .DS_Store
 
 # Cache, etc

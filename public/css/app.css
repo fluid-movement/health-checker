@@ -1,0 +1,61 @@
+body {
+    background-color: #f8fafc; /* light gray */
+}
+
+.card {
+    overflow-x: auto;
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.button-link {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    text-decoration: none;
+    border: thin solid #e2e8f0; /* light gray */
+    border-radius: 0.25rem;
+    font-size: 0.875rem; /* small text */
+    font-weight: 600;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+.button-link:hover {
+    background-color: #f8fafc; /* darker blue */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1rem;
+}
+
+thead {
+    background-color: #e2e8f0; /* light gray */
+}
+
+th, td {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #cbd5e1;
+}
+
+th:first-child, td:first-child {
+    border-left: none;
+}
+
+th:last-child, td:last-child {
+    border-right: none;
+}
+
+.status-ok {
+    color: #16a34a; /* green */
+    font-weight: bold;
+}
+
+.status-fail {
+    color: #dc2626; /* red */
+    font-weight: bold;
+}
