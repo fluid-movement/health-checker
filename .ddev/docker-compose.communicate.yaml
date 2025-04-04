@@ -1,0 +1,5 @@
+# add this to project A, allows connection to project B
+services:
+  web:
+    external_links:
+      - "ddev-router:lfneu.ddev.site"

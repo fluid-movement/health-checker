@@ -2,9 +2,15 @@
 
 namespace App\Service;
 
+use App\Enum\HttpStatus;
 use Exception;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 readonly class HealthCheckService
 {
@@ -25,28 +31,16 @@ readonly class HealthCheckService
                     'timeout' => 10, // Timeout per request in seconds
                 ]);
             } catch (TransportExceptionInterface $e) {
-                $results[$name] = [
-                    'status' => 'ERROR',
-                    'response' => $e->getMessage(),
-                ];
+                return $this->returnError($e);
             }
         }
 
         // Process responses asynchronously
         foreach ($responses as $name => $response) {
             try {
-                $statusCode = $response->getStatusCode();
-                $content = $response->getContent(); // generic exception catches all errors
-
-                $results[$name] = [
-                    'status' => $statusCode === 200 ? 'OK' : 'FAIL',
-                    'response' => $content,
-                ];
-            } catch (Exception | TransportExceptionInterface $e) {
-                $results[$name] = [
-                    'status' => 'ERROR',
-                    'response' => $e->getMessage(),
-                ];
+                $results[$name] = $this->buildResponse($response);
+            } catch (Exception $e) {
+                return $this->returnError($e);
             }
         }
 
@@ -60,18 +54,40 @@ readonly class HealthCheckService
                 'timeout' => 10, // Timeout per request in seconds
             ]);
 
-            $statusCode = $response->getStatusCode();
-            $content = $response->getContent();
-
-            return [
-                'status' => $statusCode === 200 ? 'OK' : 'FAIL',
-                'response' => $content,
-            ];
+            return $this->buildResponse($response);
         } catch (Exception | TransportExceptionInterface $e) {
-            return [
-                'status' => 'ERROR',
-                'response' => $e->getMessage(),
-            ];
+            return $this->returnError($e);
         }
+    }
+
+    private function buildResponse(ResponseInterface $response): array
+    {
+        try {
+            $content = $response->toArray();
+
+            if (isset($content['status'])) {
+                $health = $content['status'] !== 'error' ? 'OK' : $content['message'] ?? 'FAIL';
+            } else {
+                $health = 'FAIL';
+            }
+
+            $status = HttpStatus::tryFrom($response->getStatusCode()) ?? HttpStatus::INTERNAL_SERVER_ERROR;
+            return [
+                'status' => $status,
+                'health' => $health,
+                'endpoint' => $response->getInfo('url'),
+                'response' => json_encode($content , JSON_PRETTY_PRINT),
+            ];
+        } catch (\Throwable $e) {
+            return $this->returnError($e);
+        }
+    }
+
+    private function returnError(Exception $exception): array
+    {
+        return [
+            'status' => HttpStatus::INTERNAL_SERVER_ERROR,
+            'response' => $exception->getMessage(),
+        ];
     }
 }

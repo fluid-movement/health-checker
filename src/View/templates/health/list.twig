@@ -3,26 +3,24 @@
 {% block header %}System Health Check{% endblock %}
 
 {% block content %}
-    <div class="card">
-        <table class="system-health-table">
-            <thead>
+    <table class="striped">
+        <thead data-theme="light">
+        <tr>
+            <th scope="col">System</th>
+            <th scope="col">Status</th>
+            <th scope="col">Health</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for name, result in results %}
             <tr>
-                <th>System</th>
-                <th>Status</th>
-                <th>Health</th>
-                <th></th>
+                <th scope="row">{{ name }}</th>
+                <td>{{ result.status.reasonPhrase() }}</td>
+                <td>{{ result.health }}</td>
+                <td><a href="{{ url_for('health.show', { 'name': name }) }}">Details</a></td>
             </tr>
-            </thead>
-            <tbody>
-            {% for name, result in results %}
-                <tr>
-                    <td>{{ name }}</td>
-                    <td class="{{ result.status == 'OK' ? 'status-ok' : 'status-fail' }}">{{ result.status }}</td>
-                    <td class="{{ result.status == 'OK' ? 'status-ok' : 'status-fail' }}">{{ result.status }}</td>
-                    <td>{{ include('components/button-link.twig', { url: url_for('health.show', { 'name': name }), text: 'Details' }) }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

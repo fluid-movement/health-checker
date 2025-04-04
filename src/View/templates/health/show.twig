@@ -3,12 +3,13 @@
 {% block header %}{{ name }}{% endblock %}
 
 {% block content %}
-    <div class="card">
-        {{ include('components/button-link.twig', { url: url_for('health.index'), text: '< Back' }) }}
+    <article>
+        <a href="{{ url_for('health.index') }}" >< Back</a>
         <div>
-            <div>Status: <span>{{ result.status }}</span></div>
+            <div>Request: <span>{{ result.status.reasonPhrase() }}</span></div>
+            <div>Endpoint: <a href="{{ result.endpoint }}" target="_blank">{{ result.endpoint }}</a></div>
             <div>Response:</div>
             <pre><code>{{ result.response }}</code></pre>
         </div>
-    </div>
+    </article>
 {% endblock %}
